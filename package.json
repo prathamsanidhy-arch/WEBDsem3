@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  },
+  "name": "webd3",
+  "version": "1.0.0",
+  "description": "",
+  "main": "11-09-2026.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prathamsanidhy-arch/WEBDsem3.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/prathamsanidhy-arch/WEBDsem3/issues"
+  },
+  "homepage": "https://github.com/prathamsanidhy-arch/WEBDsem3#readme"
+}
