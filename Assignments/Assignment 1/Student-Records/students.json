@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "name": "hs",
+    "roll": "2",
+    "course": "btech",
+    "email": "bavs@gmail.com"
+  }
+]
