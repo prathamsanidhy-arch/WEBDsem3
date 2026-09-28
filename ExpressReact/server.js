@@ -1,59 +1,90 @@
-import express from "express";
-import fs from "fs";
-import cors from "cors";
+import express from 'express';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import cors from 'cors';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const filePath = path.join(__dirname, 'products.json');
 
 const app = express();
-
 app.use(cors());
 app.use(express.json());
 
-// GET products
-app.get("/api/products", (req, res) => {
-  const data = fs.readFileSync("products.json", "utf-8");
+const ensureDataFile = () => {
+  if (!fs.existsSync(filePath)) {
+    fs.writeFileSync(filePath, '[]', 'utf-8');
+  }
+};
 
-  const products = JSON.parse(data);
+const readProducts = () => {
+  ensureDataFile();
+  const data = fs.readFileSync(filePath, 'utf-8');
+  return JSON.parse(data);
+};
 
-  res.json(products);
+const writeProducts = (products) => {
+  fs.writeFileSync(filePath, JSON.stringify(products, null, 2));
+};
+
+app.get('/api/products', (req, res) => {
+  try {
+    const products = readProducts();
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to read products', error: error.message });
+  }
 });
 
-// POST product
-app.post("/api/products", (req, res) => {
-  const data = fs.readFileSync("products.json", "utf-8");
+app.post('/api/products', (req, res) => {
+  try {
+    const products = readProducts();
+    const { name, price, category } = req.body || {};
 
-  const products = JSON.parse(data);
+    if (!name || !price || !category) {
+      return res.status(400).json({ message: 'All product fields are required.' });
+    }
 
-  const newProduct = {
-    id: products.length + 1,
-    name: req.body.name,
-    price: req.body.price,
-    category: req.body.category,
-  };
+    const newProduct = {
+      id: Date.now(),
+      name: String(name).trim(),
+      price: Number(price),
+      category: String(category).trim(),
+    };
 
-  products.push(newProduct);
+    products.push(newProduct);
+    writeProducts(products);
 
-  fs.writeFileSync("products.json", JSON.stringify(products, null, 2));
-
-  res.json(newProduct);
+    return res.status(201).json(newProduct);
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to add product', error: error.message });
+  }
 });
 
-// DELETE product
-app.delete("/api/products/:id", (req, res) => {
-  const data = fs.readFileSync("products.json", "utf-8");
+app.delete('/api/products/:id', (req, res) => {
+  try {
+    const products = readProducts();
+    const id = Number(req.params.id);
 
-  let products = JSON.parse(data);
+    const remainingProducts = products.filter((product) => product.id !== id);
 
-  const id = parseInt(req.params.id);
+    if (remainingProducts.length === products.length) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
 
-  products = products.filter((product) => product.id !== id);
-
-  fs.writeFileSync("products.json", JSON.stringify(products, null, 2));
-
-  res.json({
-    message: "Product deleted successfully",
-  });
+    writeProducts(remainingProducts);
+    return res.json({ message: 'Product deleted successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to delete product', error: error.message });
+  }
 });
 
-app.listen(5000, () => {
-  console.log("Server running on http://localhost:5000");
+app.get('/', (req, res) => {
+  res.send('Product API is running');
 });
-paste this code in index.js
+
+const PORT = 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
